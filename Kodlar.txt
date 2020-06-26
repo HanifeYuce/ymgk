@@ -1,0 +1,291 @@
+Grafiklerin Kodları
+
+#
+import matplotlib.pyplot as plt
+import pandas as pd
+
+
+a=pd.read_csv("dbkr.csv")
+gun=a.groupby("Tarih")
+gun=gun.mean()
+gun=gun.sort_values(["Tarih"],ascending=True)
+y=gun [["PM10"]].iloc[::-1]
+x= range(0,len(gun))
+plt.plot(x,y,"r")
+plt.plot(x,y,"b")
+plt.xlabel("4/03/2020-31/03/2020")
+plt.ylabel("PM10")
+plt.title("Günlere göre PM10 değerleri" )
+plt.show()
+
+#
+import matplotlib.pyplot as plt
+import pandas as pd
+
+
+a=pd.read_csv("dbkr.csv")
+gun=a.groupby("Tarih")
+gun=gun.mean()
+gun=gun.sort_values(["Tarih"],ascending=True)
+y=gun [["SO2"]].iloc[::-1]
+x= range(0,len(gun))
+plt.plot(x,y,"r")
+plt.plot(x,y,"b")
+plt.xlabel("4/03/2020-31/03/2020")
+plt.ylabel("SO2")
+plt.title("Günlere göre SO2 değerleri" )
+plt.show()
+#
+import matplotlib.pyplot as plt
+import pandas as pd
+
+
+b=pd.read_csv("dbkr.csv")
+c=b["Tarih"]=="4/3/2020"
+a=b[c]
+y=a[["SO2"]].iloc[::-1]
+x=range(0,len(a))
+plt.plot(x,y,"r")
+plt.xlabel("Saat")
+plt.ylabel("SO2")
+plt.title("Saatlere göre SO2 değerleri")
+plt.show()
+#
+import matplotlib.pyplot as plt
+import pandas as pd
+
+
+b=pd.read_csv("dbkr.csv")
+c=b["Tarih"]=="4/3/2020"
+a=b[c]
+y=a[["PM10"]].iloc[::-1]
+x=range(0,len(a))
+plt.plot(x,y,"r")
+plt.xlabel("Saat")
+plt.ylabel("PM10")
+plt.title("Saatlere göre PM10 değerleri")
+plt.show()
+
+Sınıflandırma Sütunun Oluşturulması ve Model Kurma ve Test Başarısı
+#
+import matplotlib.pyplot as plt
+import pandas as pd
+import numpy as np
+from sklearn.preprocessing import LabelEncoder
+
+def sinif_degeri(hava_kalite):
+    if hava_kalite<=50:
+        return "Etkinlik için güzel bir hava"
+    elif hava_kalite <=100:
+        return "Etkinlik için orta bir hava"
+    elif hava_kalite <=150:
+        return "Etkinlik için iyi bir hava değil"
+    elif hava_kalite <=200:
+        return "Etkinlik için sağlıksız bir hava"
+    elif hava_kalite <=300:
+        return "Etkinlik için kötü bir hava"
+    elif hava_kalite <=500:
+        return "Etkinlik için tehlikeli bir hava"
+    else:
+        return "-"
+
+#
+a= pd.read_csv("dbkr.csv")
+
+
+#Kalite Sütunun Eklenmesi
+hava_kalite=a.max(axis=1).apply(sinif_degeri)
+secilen_deger=a.drop(["Tarih"],axis=1).idxmax(axis=1)
+
+a["SecilenDeger"]=secilen_deger
+a["HavaKalitesi"]=hava_kalite
+
+
+#Sınıf sayısının belirlenmesi
+label_encoder=LabelEncoder().fit(a.HavaKalitesi)
+labels=label_encoder.transform(a.HavaKalitesi)
+classes=list(label_encoder.classes_)
+
+#Girdi ve çıktı değerlerinin hesaplanması
+x=a.drop(["HavaKalitesi", "Tarih", "SecilenDeger"],axis=1)
+y=labels
+
+#Verilerin Standartlaştırılması
+from sklearn.preprocessing import StandardScaler
+sc = StandardScaler()
+x = sc.fit_transform(x)
+
+#Eğitimde test verilerinin hazırlanması
+from sklearn.model_selection import train_test_split
+x_train, x_test, y_train, y_test=train_test_split(x,y,test_size=0.2)
+
+#Çıktı değerlerinin kategorileştirilmesi
+from tensorflow.keras.utils import to_categorical
+y_train=to_categorical(y_train)
+y_test = to_categorical(y_test)
+
+#Ysa Modelinin Oluşturulması
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense
+model = Sequential()
+model.add(Dense(100,input_dim=2, activation="relu"))
+model.add(Dense(50,activation="relu"))
+model.add(Dense(3,activation="softmax"))
+model.summary()
+
+#modelin derlenmesi
+model.compile(loss="categorical_crossentropy",optimizer="adam",metrics=["accuracy"])
+
+#modelin eğitilmesi
+model.fit(x_train,y_train, validation_data=(x_test,y_test), epochs=100)
+
+#gerekli değerlerin gösterilmesi
+print("Ortalama eğitim kaybı:",np.mean(model.history.history["loss"]))
+print("Ortalama eğitim başarımı:",np.mean(model.history.history["accuracy"]))
+print("Ortalama doğrulama kaybı:",np.mean(model.history.history["val_loss"]))
+print("Ortalama doğrulama başarımı:",np.mean(model.history.history["val_accuracy"]))
+
+#Eğitim ve doğrulama verilerinin gösterilmesi
+import matplotlib.pyplot as plt
+
+plt.plot(model.history.history["accuracy"])
+plt.plot(model.history.history["val_accuracy"])
+plt.title("Model Başarımları")
+plt.ylabel("Başarım")
+plt.xlabel("Epok sayısı")
+plt.legend(["Eğitim","Test"], loc="upper left")
+plt.show()
+
+#Eğitimde doğrulama kayıplarının gösterilmesi
+import matplotlib.pyplot as plt
+plt.plot(model.history.history["loss"])
+plt.plot(model.history.history["val_loss"])
+plt.title("Model Kayıpları")
+plt.ylabel("Kayıp")
+plt.xlabel("Epok sayısı")
+plt.legend(["Eğitim","Test"], loc="upper left")
+plt.show()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
